@@ -1,0 +1,31 @@
+; handle variables
+Var hCtl_ProbeWelcomeDialog
+Var hCtl_ProbeWelcomeDialog_logoBitmap
+Var hCtl_ProbeWelcomeDialog_logoBitmap_hImage
+
+
+; dialog create function
+Function fnc_ProbeWelcomeDialog_Create
+  
+  ; === ProbeWelcomeDialog (type: Dialog) ===
+  nsDialogs::Create 1018
+  Pop $hCtl_ProbeWelcomeDialog
+  ${If} $hCtl_ProbeWelcomeDialog == error
+    Abort
+  ${EndIf}
+  !insertmacro MUI_HEADER_TEXT "Windows Probe Setup" "Please click Install to start setup"
+  
+  ; === logoBitmap (type: Bitmap) ===
+  ${NSD_CreateBitmap} 7.9u 3.08u 280.41u 129.85u ""
+  Pop $hCtl_ProbeWelcomeDialog_logoBitmap
+  File "/oname=$PLUGINSDIR\WDLogo.bmp" "WDLogo.bmp"
+  ${NSD_SetStretchedImage} $hCtl_ProbeWelcomeDialog_logoBitmap "$PLUGINSDIR\WDLogo.bmp" $hCtl_ProbeWelcomeDialog_logoBitmap_hImage
+  
+FunctionEnd
+
+; dialog show function
+Function fnc_ProbeWelcomeDialog_Show
+  Call fnc_ProbeWelcomeDialog_Create
+  nsDialogs::Show $hCtl_ProbeWelcomeDialog
+FunctionEnd
+

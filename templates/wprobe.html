@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+
+        <link rel="stylesheet" href="static/css/jquery-ui.min.css">        
+
+        <script type="text/javascript" src="static/js/jquery.min.js"></script> 
+        <script type="text/javascript" src="static/js/jquery.alphanum.js"></script>         
+        <script type="text/javascript" src="static/js/jquery-ui.min.js"></script>        
+
+         <script>
+            $( document ).ready(function() { 
+    
+                $('input:text[name="aDomain"]').alphanum({
+                    allow: '.',
+                    disallow: '+-',
+                    allowSpace: false
+                })
+
+                $('input:text[name="aUsername"]').alphanum({
+                    disallow: '+-',
+                    allowSpace: false
+                })            
+
+                $('input:text[name="cID"]').alphanum({
+                    disallow: '+-',
+                    allowSpace: false
+                })  
+
+                $('input:text[name="cName"]').alpha()                
+
+                $('input:text[name="sAddress"]').alphanum({
+                    allow: '.',
+                    disallow: '+-',
+                    allowSpace: false
+                })            
+
+                $('input:text[name="sPort"]').numeric({
+                    disallow: '+-',
+                    allowThouSep: false,
+                    allowDecSep:  false
+                })
+
+                $('input:text[name="pDomain"]').alphanum({
+                    allow: '.',
+                    disallow: '+-',
+                    allowSpace: false
+                }) 
+
+                $('input:text[name="pUsername"]').alphanum({
+                    disallow: '+-',
+                    allowSpace: false
+                })
+
+                $('input:text[name="pAddress"]').alphanum({
+                    allow: '.',
+                    disallow: '+-',
+                    allowSpace: false
+                }) 
+
+                $('input:text[name="pPort"]').numeric({
+                    disallow: '+-',
+                    allowThouSep: false,
+                    allowDecSep:  false
+                })
+
+                $('input:text[name="amtUsername"]').alphanum({
+                    disallow: '+-',
+                    allowSpace: false
+                })                                                            
+                                              
+                $("#initPTChecked").prop("checked", true);                 
+                setPTVisibility($('input:radio[name="probetype"]:checked').val())
+                loadProbeTypeEventHandler()
+
+                $("#initCSChecked").prop("checked", true);
+                setCSVisibility($('input:radio[name="cspecific"]:checked').val())
+                loadCustomerSpecificEventHandler()
+
+                $("#initATChecked").prop("checked", true);  
+                setATVisibility($('input:radio[name="atype"]:checked').val())
+                loadATypeEventHandler()
+
+                $("#initSPChecked").prop("checked", true)
+                setSPVisibility($('input:radio[name="sprotocol"]:checked').val())                  
+                loadSPortEventHandler()
+
+                $("#uPID").prop("checked", true)
+                setUPVisibility(true)
+                loadUProxyEventHandler()
+
+                $("#initUPChecked").prop("checked", true)
+                setUPParamsVisibility($('input:radio[name="aproxy"]:checked').val())
+                loadUPParamsEventHandler()                
+
+                $("#initAMTChecked").prop("checked", true)                
+                setAMTVisibility($('input:radio[name="useamt"]:checked').val())                
+                loadAMTEventHandler()
+
+                $('#cData').prop("checked", false)
+                $('#skipES').prop("checked", false)
+
+                $("#progressID").hide()                                
+
+                var countUpTimer, countUp_number=-1, deferred = $.Deferred(), promise = deferred.promise()
+            
+                function result() 
+                {
+                    $("#progressLabel").text('Please download the setup file now.')
+
+                    countUp_number = 100
+                    inProgress()
+                }
+
+                function failed() 
+                {
+                    $("#progressbar").css({
+                       'background': 'red'
+                    })
+
+                    $("#progressLabel").text("Your customized setup file couldn't be created. Please try again.")
+
+                    countUp_number = -1
+                    deferred = $.Deferred()
+                    promise = deferred.promise()                    
+                }
+
+                function inProgress() 
+                {
+                   $("#progressbar").progressbar({
+                       value: countUp_number
+                   })
+
+                   $("#progressbar > span").html(countUp_number + "%")
+                }
+
+                function countUp() 
+                {
+                    if(countUp_number < 100) 
+                    {
+                       countUp_number += 1
+                       deferred.notify()
+                       countUpTimer = setTimeout(countUp, 30)
+                    } 
+
+                }                
+
+                function loadProgressBar()
+                {
+                    $("#progressLabel").text('Your customized installer is being created. Please be patient.')
+                    $("#progressID").show()   
+
+                    $("#progressbar").progressbar();   
+
+                    $("#progressbar").css({
+                        'background': 'LightYellow'
+                    });
+
+                    $("#progressbar > div").css({
+                        'background': 'Orange'
+                    });                                                                
+
+                    promise.done(result)
+                    promise.fail(failed)
+                    promise.progress(inProgress)  
+
+                    countUp()                                      
+                }                
+
+                $('#sData').click(function() {
+
+                    loadProgressBar()                                                      
+                                    
+                    $.post('/probeUploadInfo', getJSONData(),
+                        function(data){
+
+                            if(data['fName']=="-1")
+                                deferred.reject()  
+                            else
+                            {
+                                deferred.resolve()
+                                window.location.replace(data['fName']);
+                            }
+
+                    })
+
+                })  
+
+            })
+
+            function getJSONData()
+            {
+                jData={}
+
+                jData['PROBETYPE']=$('input:radio[name="probetype"]:checked').val()
+
+                if($('#divADomain').is(':visible'))
+                    jData['AGENTDOMAIN']=$('input:text[name="aDomain"]').val() 
+
+                if($('#divAUsername').is(':visible'))
+                    jData['AGENTUSERNAME']=$('input:text[name="aUsername"]').val()                
+
+                if($('#divAPassword').is(':visible'))
+                    jData['AGENTPASSWORD']=getProperStr($('input:password[name="aPassword"]').val())
+
+                jData['CUSTOMERSPECIFIC']=$('input:radio[name="cspecific"]:checked').val()  
+
+                jData['ACTIVATIONTYPE']=$('input:radio[name="atype"]:checked').val()
+
+                if($('#divCID').is(':visible'))
+                    jData['CUSTOMERID']=$('input:text[name="cID"]').val()                 
+
+                if($('#divCName').is(':visible'))
+                    jData['CUSTOMERNAME']=getProperStr($('input:text[name="cName"]').val())
+
+                if($('#divAAKey').is(':visible'))
+                    jData['AGENTACTIVATIONKEY']=getProperStr($('input:text[name="aAKey"]').val())
+
+                jData['SERVERPROTOCOL']=$('input:radio[name="sprotocol"]:checked').val()
+
+                jData['SERVERADDRESS']=$('input:text[name="sAddress"]').val()
+                jData['SERVERPORT']=$('input:text[name="sPort"]').val()
+
+                if($('#uPID').is(':checked'))
+                {
+                    jData['USEPROXY']=1
+
+                    jStr=""
+
+                    if($('#divPDomain').is(':visible'))
+                        jStr+=($('input:text[name="pDomain"]').val()+"\\\\")
+
+                    if($('#divPUsername').is(':visible'))
+                        jStr+=($('input:text[name="pUsername"]').val()+":")                                        
+
+                    if($('#divPPassword').is(':visible'))
+                        jStr+=($('input:password[name="pPassword"]').val()+"@")
+
+                    if($('#divPAddress').is(':visible'))
+                        jStr+=($('input:text[name="pAddress"]').val()+":")
+
+                    if($('#divPPort').is(':visible'))
+                        jStr+=$('input:text[name="pPort"]').val()                    
+
+                    jData['AGENTPROXY']=jStr
+                }
+
+                jData['USEAMT']=$('input:radio[name="useamt"]:checked').val()
+
+                if($('#divAMT').is(':visible'))
+                {
+                    jData['AMT_USER']=$('input:text[name="amtUsername"]').val()
+                    jData['AMT_PASSWORD']=$('input:password[name="amtPassword"]').val()
+                }
+
+                if($('#cData').is(':checked'))
+                    jData['CLEARDATA']=1       
+
+                if($('#skipES').is(':checked'))
+                    jData['SKIPES']=1                
+
+                return jData
+            }
+
+            function getProperStr(cStr)
+            {
+                if(cStr.indexOf(' ')>=0)
+                    return "\\\""+cStr+"\\\""
+                else
+                    return cStr
+            }
+
+            function setAMTVisibility(rbValue)
+            {
+                if(rbValue=='1')
+                    $('#divAMT').show()
+                else
+                    $('#divAMT').hide()
+            }
+
+            function setUPParamsVisibility(rbValue)
+            {
+                if(rbValue=='0')
+                {
+                    $('#divPDomain').hide()
+                    $('#divPUsername').hide()
+                    $('#divPPassword').hide()
+                }
+                else if(rbValue=='1')
+                {
+                    $('#divPDomain').hide()
+                    $('#divPUsername').show()
+                    $('#divPPassword').show()
+                }                
+                else
+                {
+                    $('#divPDomain').show()
+                    $('#divPUsername').show()
+                    $('#divPPassword').show()
+                }
+
+                $('#divPAddress').show()
+                $('#divPPort').show()                
+            } 
+
+            function setUPVisibility(isChecked)
+            {
+                if(isChecked)
+                    $('#divAProxy').show()
+                else
+                    $('#divAProxy').hide()
+            }            
+
+            function setSPVisibility(rbValue)
+            {
+                if (rbValue == 'http')
+                    $('#sport').val('80')
+                else
+                    $('#sport').val('433')
+            }            
+
+            function setATVisibility(rbValue)
+            {
+                if (rbValue == '2')
+                {        
+                    $('#divCID').hide()                     
+                    $('#divCName').hide()
+                    $('#divAAKey').show()
+                }
+                else
+                {
+                    $('#divCID').show()                     
+                    $('#divCName').show()
+                    $('#divAAKey').hide()                    
+                }
+            }             
+
+            function setCSVisibility(rbValue)
+            {
+                if (rbValue == '0')
+                {
+                    $('#at0').hide() 
+                    $('#at1').hide() 
+                }
+                else
+                {
+                    $('#at0').show() 
+                    $('#at1').show() 
+                }          
+
+                $('#at2').show() 
+                $('#at3').show()                
+            }            
+
+            function setPTVisibility(rbValue)
+            {
+                if (rbValue == 'Local_Windows')
+                {
+                    $('#divADomain').hide() 
+                    $('#divAUsername').hide() 
+                    $('#divAPassword').hide() 
+                }
+                else if (rbValue == 'Network_Windows')
+                {
+                    $('#divADomain').show() 
+                    $('#divAUsername').show() 
+                    $('#divAPassword').show() 
+                }
+                else
+                {
+                    $('#divADomain').hide()                                   
+                    $('#divAUsername').show() 
+                    $('#divAPassword').show()
+                }            
+            }
+
+            function loadProbeTypeEventHandler()
+            {
+                $('input:radio[name="probetype"]').change(
+
+                    function(){
+                        if($(this).is(':checked'))
+                            setPTVisibility($(this).val())                        
+                });                
+            }
+
+            function loadCustomerSpecificEventHandler()
+            {
+                $('input:radio[name="cspecific"]').change(
+
+                    function(){
+                        if($(this).is(':checked'))
+                        {
+                            setCSVisibility($(this).val())
+
+                            if($(this).val()=='0')
+                            {
+                                str=$('input:radio[name="atype"]:checked').val()   
+
+                                if(str=='0' || str=='1')
+                                {
+                                    $("#initATChecked").prop("checked", true); 
+                                    setATVisibility('3')                                   
+                                }
+
+                            }   
+
+                        }
+
+                });                
+            }  
+
+            function loadATypeEventHandler()
+            {
+                $('input:radio[name="atype"]').change(
+
+                    function(){                        
+                        if($(this).is(':checked'))                            
+                            setATVisibility($(this).val())                        
+                });                
+            } 
+
+            function loadSPortEventHandler()
+            {
+                $('input:radio[name="sprotocol"]').change(
+
+                    function(){
+                        if($(this).is(':checked'))
+                            setSPVisibility($(this).val())                        
+                });                
+            } 
+
+            function loadUProxyEventHandler()
+            {
+                $('#uPID').change(
+
+                    function(){
+                        if($(this).is(':checked'))
+                            setUPVisibility(true)
+                        else                     
+                            setUPVisibility(false)   
+                });                
+            }
+
+            function loadUPParamsEventHandler()
+            {
+                $('input:radio[name="aproxy"]').change(
+
+                    function(){
+                        if($(this).is(':checked'))
+                            setUPParamsVisibility($(this).val())                        
+                });                                
+            }
+
+            function loadAMTEventHandler()
+            {
+                $('input:radio[name="useamt"]').change(
+
+                    function(){
+                        if($(this).is(':checked'))
+                            setAMTVisibility($(this).val())                        
+                });                 
+            }
+
+        </script>        
+
+        <title>Custom Windows Probe Installer Creator</title>      
+    </head>
+    <body>  
+
+        <div align="center">
+
+            <h2>Windows probe installer options</h2>    
+
+            <div id="progressID">           
+
+                <br/>            
+                <div id="progressbar" style="margin: 0px 0px 16px 0px;">
+                    <span style="position: absolute;text-align: center;margin: 5px 0 0 47%;"></span>
+                </div>                
+
+                <label id="progressLabel"></label>
+                <br/><br/>
+
+            </div>                               
+
+            <form action="">Probe type:<br/>
+                <input type="radio" name="probetype" value="Local_Windows" id="initPTChecked"/>Local
+                <input type="radio" name="probetype" value="Network_Windows"/>Network
+                <input type="radio" name="probetype" value="Workgroup_Windows"/>Workgroup<br/><br/>
+            </form>
+
+
+            <div id="divADomain">
+                Agent Domain: <input type="text" name="aDomain">
+            </div>    
+
+            <div id="divAUsername">
+                Agent Username: <input type="text" name="aUsername">
+            </div>
+
+            <div id="divAPassword">
+                Agent Password: <input type="password" name="aPassword"><br/><br/>
+            </div>  
+
+            <form action="">Customer Specific:<br/>
+                <input type="radio" name="cspecific" value="1" id="initCSChecked"/>Yes
+                <input type="radio" name="cspecific" value="0"/>No<br/><br/>
+            </form>
+
+            <form action="">Activation type:<br/>
+                <span id="at0"><input type="radio" name="atype" value="0"/>0</span>
+                <span id="at1"><input type="radio" name="atype" value="1"/>1</span>
+                <span id="at2"><input type="radio" name="atype" value="2"/>2</span>
+                <span id="at3"><input type="radio" name="atype" value="3" id="initATChecked"/>3</span><br/><br/>
+            </form>
+
+            <div id="divCID">
+                Customer ID: <input type="text" name="cID">
+            </div>    
+
+            <div id="divCName">
+                Customer Name: <input type="text" name="cName"><br/><br/>
+            </div>        
+
+            <div id="divAAKey">
+                Agent Activation Key: <input type="text" name="aAKey"><br/><br/>
+            </div>  
+
+            <form action="">Server Protocol:<br/>
+                <input type="radio" name="sprotocol" value="http" id="initSPChecked"/>HTTP
+                <input type="radio" name="sprotocol" value="https"/>HTTPS<br/><br/>
+            </form>    
+
+            Server Address: <input type="text" name="sAddress"><br/>
+            Server Port: <input type="text" name="sPort" id="sport"><br/><br/>
+
+            <input type="checkbox" name="upName" id="uPID">Use Proxy<br/>        
+
+            <div id="divAProxy">
+
+                <form action="">
+                    <span id="ap0"><input type="radio" name="aproxy" value="0" id="initUPChecked"/>Non-Authenticating Proxy</span>
+                    <span id="ap1"><input type="radio" name="aproxy" value="1"/>Authenticating Proxy</span>
+                    <span id="ap2"><input type="radio" name="aproxy" value="2"/>ISA 2000/2004</span><br/><br/>
+
+                    <div id="divPDomain">Proxy Domain: <input type="text" name="pDomain"></div>
+                    <div id="divPUsername">Username: <input type="text" name="pUsername"></div>                
+                    <div id="divPPassword">Password: <input type="password" name="pPassword"></div>
+                    <div id="divPAddress">Proxy Server Address: <input type="text" name="pAddress"></div>
+                    <div id="divPPort">Proxy Server Port: <input type="text" name="pPort"></div>                
+                </form>
+
+            </div><br/>
+
+            <form action="">Use Intel Active Management Technology:<br/>
+                <input type="radio" name="useamt" value="1" id="initAMTChecked"/>Yes
+                <input type="radio" name="useamt" value="0"/>No<br/><br/>
+            </form>
+
+            <div id="divAMT">
+                AMT Username: <input type="text" name="amtUsername"><br/>                
+                AMT Password: <input type="password" name="amtPassword"><br/><br/>            
+            </div>        
+
+            <input type="checkbox" id="cData">Clear Data<br/>        
+            <input type="checkbox" id="skipES">Skip Endpoint Security<br/><br/>
+
+            <input type="submit" id="sData" value="Download">        
+            
+        </div> 
+
+    </body>
+</html>

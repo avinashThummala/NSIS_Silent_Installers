@@ -1,0 +1,5 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+
+<Dialog Name="ProbeWelcomeDialog" Title="Windows Probe Setup" Subtitle="Please click Install to start setup">
+  <Bitmap Name="logoBitmap" Location="12, 5" Size="426, 211" ImageFilename="WDLogo.bmp" Stretched="True" TabIndex="0" />
+</Dialog>

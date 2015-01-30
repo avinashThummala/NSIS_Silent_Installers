@@ -1,0 +1,31 @@
+; handle variables
+Var hCtl_AgentWelcomeDialog
+Var hCtl_AgentWelcomeDialog_logoBitmap
+Var hCtl_AgentWelcomeDialog_logoBitmap_hImage
+
+
+; dialog create function
+Function fnc_AgentWelcomeDialog_Create
+  
+  ; === AgentWelcomeDialog (type: Dialog) ===
+  nsDialogs::Create 1018
+  Pop $hCtl_AgentWelcomeDialog
+  ${If} $hCtl_AgentWelcomeDialog == error
+    Abort
+  ${EndIf}
+  !insertmacro MUI_HEADER_TEXT "Windows Agent Setup" "Please click Install to start setup"
+  
+  ; === logoBitmap (type: Bitmap) ===
+  ${NSD_CreateBitmap} 7.9u 3.08u 280.41u 129.85u ""
+  Pop $hCtl_AgentWelcomeDialog_logoBitmap
+  File "/oname=$PLUGINSDIR\WDLogo.bmp" "WDLogo.bmp"
+  ${NSD_SetStretchedImage} $hCtl_AgentWelcomeDialog_logoBitmap "$PLUGINSDIR\WDLogo.bmp" $hCtl_AgentWelcomeDialog_logoBitmap_hImage
+  
+FunctionEnd
+
+; dialog show function
+Function fnc_AgentWelcomeDialog_Show
+  Call fnc_AgentWelcomeDialog_Create
+  nsDialogs::Show $hCtl_AgentWelcomeDialog
+FunctionEnd
+
